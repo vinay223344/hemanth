@@ -1,0 +1,37 @@
+For measuring code coverage using Cadence tools, use the command:
+ncverilog +access+rwc <filename.v> [-coverage all ] -covclean -covfile covfile.ccf
+WHERE:
+ncverilog is the Command name
+filename.v is the verilog file/s which contains the Verilog code
+-coverage is the command line argument and \u2018all\u2019 is the option that goes with -coverage
+-covclean overwrites the data generated from a previous simulation; if this option is not given, then old data is
+used; ( -covoverwrite can also be used instead of -covclean)
+-covfile is the command line option that reads the commands from the coverage configuration file whose name
+is covfile.ccf. [ The file covfile.ccf should be in the same directory as the verilog files.]
+To start with, the covfile.ccf may contain the following lines :
+select_coverage -block -expr -toggle -fsm
+set_branch_scoring
+set_toggle_includex
+------------------------------------------------------------
+Another command that can be used to measure coverage is:
+xrun +access+rwc <filename.v> [-coverage all ] -covfile covfile.ccf
+WHERE:
+xrun (older version is : irun) is the command name
+filename.v is the name of the file that contains the verilog code; and other options are as explained above.
+The Verilog code must contain a system function ( $recordfile(\u201cfilename.trn\u201d); ) that can capture the signal
+transition information. Most often, the filename database.trn is used.
+The simulation captures coverage information for block coverage, toggle coverage, fsm coverage. This can be
+viewed using the IMC (Incisive Metrics Center) tool.
+At the UNIX Prompt, invoke the tool by using the command imc.
+This brings up the IMC tool. You can then go the top left corner of the GUI and load the data to see the coverage.
+The data for showing coverage will be in the file ./cov_work/scope/test.
+After loading the data, you can see all the metrics for coverage. The Instances used in the Verilog code can be
+seen. We can see what statements have been covered, what have not been covered, how many branches are
+covered, how many are not covered etc. From the given information we will be able to find out what more
+verification tests are required to achieve full coverage.
+FSM coverage consisting of states and transitions is also shown. Similarly toggle coverage can be seen. If we
+wish to exclude certain signals from coverage calculations, we can exclude them (for example, rst may not have
+a 1->0 transition if it is a Power-on-Reset, active low, asynchronous). This can be reconciled with the directive
+set_toggle_includex in the coverage configuration file covfile.ccf, which must be in the same directory as your
+Verilog code.
+ENJOY navigating through the Coverage data !
