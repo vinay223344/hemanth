@@ -1,0 +1,83 @@
+Design guidelines for RTL coding
+1. When modeling sequential logic use nonblocking assignments.
+2. When modeling latches use nonblocking assignments.
+3. When modeling combinational logic using an always block, use blocking
+assignments.
+4. When modeling both sequential and combinational logic within the same always
+block, use nonblocking assignments.
+5. Do not mix blocking and nonblocking assignments within the same always block.
+6. Do not make assignments to the same variable from two different always block.
+7. Use $strobe instead of $display to display variables that have been assigned using
+the nonblocking assignment.
+8. Do not make any assignments in the RTL code using #delays, whether in the blocking
+assignment or in the nonblocking assignment; do not even use #0 construct in the
+assignments.
+Following the above guidelines will accurately model the synthesizable hardware and
+eliminate about 90% of the problems due to coding styles.
+9. Do not use any internally generated clocks in the design. These will cause a problem
+during the DFT stage in the ASIC flow.
+10. Use the clock for synthesizing only sequential logic and not combinational logic. i.e.
+do not use the clock as in: always @ ( clk or reset or state ).....
+11. Use asynchronous reset in the design and make the asynchronous reset only for
+Power-On reset.
+12. Do not use the `timescale directive in the RTL code. RTL code is meant to be
+technology independent and using timescale directive which works on #delays has
+no meaning in the RTL code.
+13. In general, do not use Synopsys synthesis directives like synopsys_full_case and
+synopsys_parallel_case in the RTL code. These directives act as comments in the
+simulation tool, but provide extra information to the synthesis tool, thereby creating
+a possibility of mismatch in the results between pre-synthesis simulation and post-
+synthesis simulation. (synopsys_full_case and synopsys_parallel_case are for use
+with the Synopsys tool only and do not act on the Xilinx FPGA synthesis tools.)
+14. Use only one clock source in every \u201cnon-top\u201d module. Ideally only the top module
+can have multiple clock sources. This eases timing closure for most of the timing
+analysis tools.15. Do not use the casex construct for synthesizable code. Use only the casez construct
+and use \u2018?\u2019 to indicate don\u2019t care bits.
+16. Code all intentional priority encoders using if-else-if-else constructs.
+17. Do not use internal tristate signals. This means that you should not use the inout
+type of signals in the modules that are NOT top (chip) level modules.
+18. Use the 2-stage FF method of synchronizing single-bit signals which cross clock
+domains. Multi bit-signals are synchronized in a different way \u2013 by qualifying the
+data with another signal.
+19. Use the toggle mechanism to pass a pulse-wide signal from a clock domain of
+higher clock frequency to another clock domain of lower clock frequency. In this
+way, pulse stretching is not required and it makes the method independent of the
+clock frequencies used. It can be used for any two clock frequencies. In the target
+clock domain, the toggle has to be detected by a series of 3 FFs connected as a shift
+register and the output pulse obtained as a XOR of the outputs from the second and
+the third FFs.
+20. When signals cross clock domains, only the output of flip-flops should be used to
+synchronize signals. If the output of combinational logic is used, the target domain
+clock pulse might capture a glitch of the combinational output and cause
+malfunction of the circuit.
+21. When doing netlist level simulation of logic that has multiple clock domains, it is
+inevitable to get timing violations on flip-flops that receive a signal from another
+clock domain. To eliminate these timing violations, all flip-flops that are the first
+stage flip-flops of synchronizing circuits can be identified and named differently and
+their timing parameters have to made of \u20180\u2019 value and added to the Verilog
+simulation library. This will eliminate warnings/errors during gate level simulation.
+22. Use the synchronizing mechanism for power-on asynchronous RESET signal. This
+will eliminate the metastability condition when the RESET signal is being de-
+asserted.
+23. Avoid usage of clock gating as much as possible. However, in low power designs, it
+is required to use clock gating and synthesis tools (these days) handle these
+situations correctly.
+24. Code the clock synchronizer modules separately from all other modules. If there are
+n clock domains in the circuit, then there can be at most n*(n-1) clock crossing
+domains and that many number of synchronizer modules.Verification guidelines
+1. Use the timescale directive consistently in all the files of the test bench. If a
+timescale directive is missed out in any of the test bench files which uses a #delay,
+then the interpretation of the time units will depend on the simulator that is being
+used and may differ from Cadence to ModelSim, there by leading to different results
+in the two cases. Use the timescale of 1ns/1ps. This should work for most cases.
+2. Instead of using a timescale directive in the top file, it is better to use a timescale
+directive in each of the test bench files, so that the use of the time units is not left to
+interpretation by the simulator \u2013 and behaves the same way whether it is cadence
+simulator or modelsim simulator.
+General guidelines
+1. Use C++ style comments // instead of C-style comments /* and */. In C++
+comments style, each line is shown commented separately and it is very clear. In C-
+style comments, when a large piece of code is commented out, you may not see the
+starting and ending of the comment on the screen, and may modify a piece of code
+that is commented out and see no difference in the functioning before and after the
+modification. This is frustrating, very often.
